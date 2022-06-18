@@ -23,8 +23,9 @@ func Explode(delimiter, text string) []string {
 type IfElseMagic struct {
 	Predicted bool `json:"predicted"`
 	MagicPredictedPercentage float64 `json:"percentage"`
+	Klines []binance.Kline `json:"data"`
+	Coin string `json:"coin"`
 }
-
 
 func gatherHistory(client *binance.Binance, impact ImpactRequest){
 
@@ -111,6 +112,7 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 
 			var magic IfElseMagic
 			magic.Predicted = true
+			magic.Coin = coin
 			//decrease - increase
 			if (trigger.PositiveSentiment && diff < 0) || (!trigger.PositiveSentiment && diff > 0)  {
 				magic.Predicted = false
@@ -129,4 +131,44 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 	fmt.Println("Final Verdict")
 	fmt.Println(elseIfMagic)
 
+	// simple artificial If - if more then half are !predicted , then your strategy just sucks 
+	// count of failed/success versions 
+	verdict := false
+	totalImpactCandidates := len(elseIfMagic)
+	impactedCount := 0
+	// each !predicted makes percent 0
+	totalPercent := 0
+	// average of all predicted
+	averagePercent := 0
+	// get the best of all ....
+	bestPredictionPercent := 0
+	var bestPredictionKlinkes []binance.Kline
+	var bestCoin string
+
+	for _, verdictCollect := range elseIfMagic { 
+		if verdictCollect.Predicted {
+			impactedCount = impactedCount + 1
+			totalPercent = int(verdictCollect.MagicPredictedPercentage)
+			if bestPredictionPercent < int(verdictCollect.MagicPredictedPercentage) {
+				bestPredictionPercent = int(verdictCollect.MagicPredictedPercentage)
+				bestPredictionKlinkes = verdictCollect.Klines
+				bestCoin = verdictCollect.Coin
+			}
+		}
+	}
+
+	averagePercent = totalPercent / totalImpactCandidates;
+	if averagePercent > 60 &&  impactedCount > (totalImpactCandidates/2) {
+		verdict = true
+	}
+
+	var verdictResponse IfElseMagic
+	verdictResponse.Klines = bestPredictionKlinkes
+	verdictResponse.Predicted = verdict
+	verdictResponse.MagicPredictedPercentage = float64(averagePercent)
+	verdictResponse.Coin = bestCoin
+
+	fmt.Println("Final Verdict SummUp")
+	fmt.Println(verdictResponse)
 }
+
