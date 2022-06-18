@@ -1,0 +1,16 @@
+version: '3'
+services:
+    binance-fairy:
+        image: ${DOCKER_REPOSITORY_URL}/go_development:v1
+        restart: always
+        ports:
+            - '8886:8886'
+        volumes:
+            - '../../binance-fairy:/app'
+        env_file:
+            - ../../.env
+        networks:
+            decentral_network: 
+networks:
+    decentral_network:
+        driver: bridge
