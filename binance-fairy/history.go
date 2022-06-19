@@ -3,13 +3,43 @@ package main
 import (
 	"./binance"
     "fmt"
+    "os"
     // "time"
     "math"
     "strings"
     "strconv"
     "os/exec"
-
+    "net/http"
+    "encoding/json"
+    "bytes"
 );
+
+type Block struct {
+    Try     func()
+    Catch   func(Exception)
+    Finally func()
+}
+
+type Exception interface{}
+ 
+func Throw(up Exception) {
+    panic(up)
+}
+ 
+func (tcf Block) Do() {
+    if tcf.Finally != nil {
+ 
+        defer tcf.Finally()
+    }
+    if tcf.Catch != nil {
+        defer func() {
+            if r := recover(); r != nil {
+                tcf.Catch(r)
+            }
+        }()
+    }
+    tcf.Try()
+}
 
 func Explode(delimiter, text string) []string {
 	if len(delimiter) > len(text) {
@@ -97,7 +127,7 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 				return
 			}
 			
-			fmt.Println("REQUEST !!!!")
+			fmt.Println("REQUEST !!!!", len(klines))
 
 			startValue := klines[0].Low;
 			endValue := klines[len(klines) - 1].High;
@@ -113,6 +143,7 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 			var magic IfElseMagic
 			magic.Predicted = true
 			magic.Coin = coin
+			magic.Klines = klines
 			//decrease - increase
 			if (trigger.PositiveSentiment && diff < 0) || (!trigger.PositiveSentiment && diff > 0)  {
 				magic.Predicted = false
@@ -151,6 +182,7 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 			totalPercent = int(verdictCollect.MagicPredictedPercentage)
 			if bestPredictionPercent < int(verdictCollect.MagicPredictedPercentage) {
 				bestPredictionPercent = int(verdictCollect.MagicPredictedPercentage)
+				fmt.Println("Klinkest setting Best" , len(verdictCollect.Klines))
 				bestPredictionKlinkes = verdictCollect.Klines
 				bestCoin = verdictCollect.Coin
 			}
@@ -170,5 +202,33 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 
 	fmt.Println("Final Verdict SummUp")
 	fmt.Println(verdictResponse)
+
+	 
+
+	 json_data, err := json.Marshal(verdictResponse)
+
+    if err != nil {
+        fmt.Println(err)
+    }
+
+    fmt.Println(os.Getenv("FRONT_UPDATE_PATH"))
+
+    Block{
+        Try: func() {
+		    resp, err := http.Post(os.Getenv("FRONT_UPDATE_PATH"), "application/json", bytes.NewBuffer(json_data))
+		    if err != nil {
+		        fmt.Println(err)
+		    }
+
+		    fmt.Println(resp)
+        },
+        Catch: func(e Exception) {
+            fmt.Printf("Caught %v\n", e)
+        },
+        Finally: func() {
+            fmt.Println("Finally...")
+        },
+    }.Do()
+
 }
 
