@@ -49,17 +49,19 @@ func Explode(delimiter, text string) []string {
 	}
 }
 
-
 type IfElseMagic struct {
 	Predicted bool `json:"predicted"`
 	MagicPredictedPercentage float64 `json:"percentage"`
 	Klines []binance.Kline `json:"data"`
 	Coin string `json:"coin"`
+	TweetTimes []string `json:"tweet_times"` 
 }
 
 func gatherHistory(client *binance.Binance, impact ImpactRequest){
 
 	var elseIfMagic []IfElseMagic
+
+	var tweetTimes []string
 
 	for _, trigger := range impact.TriggerOutput {
 
@@ -78,10 +80,12 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 	    timestamp := strings.Replace(string(stdout), "\n", "", -1) + "000"
 	    timestamp = strings.Replace(timestamp, "\"", "", -1)
 
-		/**
-		    IntervalMinutes int `json:"intervalMinutes"`
-		    1m 3m 5m 15m 30m 1h 2h 4h 6h 8h 12h 1d 3d 1w 1M  
-		**/
+	    tweetTimes = append(tweetTimes,timestamp)
+
+	    timestampCharStart, _ := strconv.Atoi(timestamp)  
+	    timestampCharStart = timestampCharStart - 10000
+
+
 		WindowSize := "4h"
 		if trigger.IntervalMinutes > 1 {
 			WindowSize = "3m"
@@ -111,12 +115,12 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 			WindowSize = "1w"
 		}
 
-
+		fmt.Println("StartTime for Reqyest", timestampCharStart)
 	    for _, coin := range trigger.Coins {
 		    query := binance.HistoryQuery {
 		        Symbol: fmt.Sprintf("%sUSDT", coin), 
-		        OpenTime: timestamp,
-		        CloseTime: timestamp,
+		        OpenTime: strconv.Itoa(timestampCharStart),
+		        CloseTime: strconv.Itoa(timestampCharStart),
 		        WindowSize: WindowSize,
 		    }
 
@@ -199,6 +203,7 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 	verdictResponse.Predicted = verdict
 	verdictResponse.MagicPredictedPercentage = float64(averagePercent)
 	verdictResponse.Coin = bestCoin
+	verdictResponse.TweetTimes = tweetTimes
 
 	fmt.Println("Final Verdict SummUp")
 	fmt.Println(verdictResponse)
