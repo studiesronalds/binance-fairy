@@ -204,6 +204,10 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 				bestCoin = verdictCollect.Coin
 			}
 		}
+
+		if len(bestPredictionKlinkes) == 0 {
+			bestPredictionKlinkes = verdictCollect.Klines
+		}
 	}
 
 	averagePercent = totalPercent / totalImpactCandidates;
