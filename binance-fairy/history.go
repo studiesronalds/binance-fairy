@@ -141,7 +141,7 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 
 		    if err != nil {
 		    	fmt.Println(err)
-				return
+				continue;
 			}
 			
 			fmt.Println("REQUEST !!!!", len(klines))
