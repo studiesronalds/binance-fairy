@@ -67,13 +67,19 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 
 		// trigger.TweetTime == 06/17/2022 08:23:28
 
+		dateSplit := Explode("/", trigger.TweetTime)
+		fmt.Println(len(dateSplit), "!!!!Slash count")
+		if len(dateSplit) == 3 {
+			yearTime := Explode(" ", dateSplit[2])
+			if len(yearTime) == 2 {
+				trigger.TweetTime = yearTime[0] + "-" + dateSplit[0] + "-" + dateSplit[1] + " " + yearTime[1]
+				fmt.Println("Refatored Date " + trigger.TweetTime)
+			}
+		}
 
-		app := "date"
-	    arg0 := "-d"
-	    arg1 := "\"" + trigger.TweetTime + "\""
-	    arg2 := "+\"%s\""
+		first_cmd := `date -d "`+ trigger.TweetTime + `" +"%s"`
+    	cmd := exec.Command("sh", "-c", first_cmd)
 
-	    cmd := exec.Command(app, arg0, arg1, arg2)
 	    //stdout, err := cmd.Output()
 	    stdout, err := cmd.CombinedOutput()
 	    if err != nil {
@@ -82,6 +88,10 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 	    }
 	    timestamp := strings.Replace(string(stdout), "\n", "", -1) + "000"
 	    timestamp = strings.Replace(timestamp, "\"", "", -1)
+
+	    if len(timestamp) == 3 {
+	    	timestamp = "1655022208000"
+	    }
 
 	    tweetTimes = append(tweetTimes,timestamp)
 
