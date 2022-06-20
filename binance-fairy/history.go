@@ -219,6 +219,7 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
         fmt.Println(err)
     }
 
+    fmt.Println("FRONT UPDATE")
     fmt.Println(os.Getenv("FRONT_UPDATE_PATH"))
 
     Block{
