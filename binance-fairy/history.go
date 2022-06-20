@@ -68,16 +68,16 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 		// trigger.TweetTime == 06/17/2022 08:23:28
 
 
-		app := "date"
+	    app := "date"
 	    arg0 := "-d"
 	    arg1 := "\"" + trigger.TweetTime + "\""
 	    arg2 := "+\"%s\""
 
 	    cmd := exec.Command(app, arg0, arg1, arg2)
-	    //stdout, err := cmd.Output()
-	    stdout, err := cmd.CombinedOutput()
+	    stdout, err := cmd.Output()
+	    //stdout, err := cmd.CombinedOutput()
 	    if err != nil {
-	        fmt.Println(err.Error())
+	        fmt.Println("ERROR:::" + err.Error())
 	        //return
 	    }
 	    timestamp := strings.Replace(string(stdout), "\n", "", -1) + "000"
