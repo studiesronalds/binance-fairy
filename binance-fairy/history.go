@@ -71,11 +71,11 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 	    arg2 := "+\"%s\""
 
 	    cmd := exec.Command(app, arg0, arg1, arg2)
-	    stdout, err := cmd.Output()
-
+	    //stdout, err := cmd.Output()
+	    stdout, err := cmd.CombinedOutput()
 	    if err != nil {
 	        fmt.Println(err.Error())
-	        return
+	        //return
 	    }
 	    timestamp := strings.Replace(string(stdout), "\n", "", -1) + "000"
 	    timestamp = strings.Replace(timestamp, "\"", "", -1)
@@ -217,7 +217,7 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
     }
 
     fmt.Println(os.Getenv("FRONT_UPDATE_PATH"))
-
+    fmt.Println("Before Try block")
     Block{
         Try: func() {
 		    resp, err := http.Post(os.Getenv("FRONT_UPDATE_PATH"), "application/json", bytes.NewBuffer(json_data))
