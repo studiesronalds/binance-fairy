@@ -177,7 +177,7 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 	}
 
 	fmt.Println("Final Verdict")
-	fmt.Println(elseIfMagic)
+	//fmt.Println(elseIfMagic)
 
 	// simple artificial If - if more then half are !predicted , then your strategy just sucks 
 	// count of failed/success versions 
@@ -207,6 +207,8 @@ func gatherHistory(client *binance.Binance, impact ImpactRequest){
 
 		if len(bestPredictionKlinkes) == 0 {
 			bestPredictionKlinkes = verdictCollect.Klines
+			bestPredictionPercent = int(verdictCollect.MagicPredictedPercentage)
+			bestCoin = verdictCollect.Coin
 		}
 	}
 
